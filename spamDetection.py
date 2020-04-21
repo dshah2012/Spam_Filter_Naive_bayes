@@ -25,7 +25,7 @@ class SpamDetection:
 		for i in range(1,totalFiles+1):
 			fileNumber = classType+'-'+str(i).zfill(5)
 			fileName = fileType+'/'+fileType+'-'+fileNumber+ '.txt'
-			file =open(fileName, "r")
+			file =open(fileName, "r",encoding="utf8", errors='ignore')
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
@@ -76,7 +76,7 @@ class SpamDetection:
 			test_dictionary ={}
 			fileNumber = classType+'-'+str(i).zfill(5)
 			fileName = fileType+'/'+fileType+'-'+ fileNumber + '.txt'
-			file = open(fileName, "r")
+			file = open(fileName, "r",encoding="utf8", errors='ignore')
 			ham = 0
 			spam = 0
 			if file.mode == 'r':
