@@ -29,12 +29,11 @@ class SpamDetection:
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
-				contents = contents.lower() 
 				contents=re.sub('[^a-z\s]+',' ',contents,flags=re.IGNORECASE) #every char except alphabets is replaced
 				contents=re.sub('(\s+)',' ',contents) #multiple spaces are replaced by single space
-				contents=contents.lower()
-				contents = re.split('\[\^a-zA-Z\]',contents) #Spliting the words 
-				contents = contents[0].split(" ")
+				contents=contents.lower() #converting the cleaned string to lower case
+				contents = re.split(' ',contents)
+				contents = [i for i in contents if i != ""]
 				#Getting the frequency of each word in that email and putting it in dicitonary 
 				for i in contents:
 					if classType == "ham": 
@@ -82,9 +81,11 @@ class SpamDetection:
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
-				contents = contents.lower() 
-				contents = re.split('\[\^a-zA-Z\]',contents)
-				contents = contents[0].split(" ")
+				contents=re.sub('[^a-z\s]+',' ',contents,flags=re.IGNORECASE) #every char except alphabets is replaced
+				contents=re.sub('(\s+)',' ',contents) #multiple spaces are replaced by single space
+				contents=contents.lower() #converting the cleaned string to lower case
+				contents = re.split(' ',contents)
+				contents = [i for i in contents if i != ""]
 				for i in contents:
 					if i in test_dictionary.keys():
 						test_dictionary[i] = test_dictionary[i]+1
@@ -124,6 +125,5 @@ if __name__ == "__main__":
 	spamDetection.readFiles("train","ham",1000)
 	spamDetection.readFiles("train","spam",997)
 	spamDetection.calculate_cond_probaility()
-	#spamDetection.predictTestData("test","ham",1)
-	spamDetection.predictTestData("test","spam",1)
-	
+	#spamDetection.predictTestData("test","ham",10)
+	spamDetection.predictTestData("test","spam",20)
