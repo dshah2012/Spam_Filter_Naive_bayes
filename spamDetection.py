@@ -56,6 +56,11 @@ class SpamDetection:
 			f.write(result)
 		f.close()
 
+	def save_result(self,result):
+		with open('result.txt','w+') as f:
+			f.write(result)
+		f.close();
+
 	def generateModel(self):
 		for i in self.hamwords.keys():
 			self.total_vocab.append(i)
@@ -99,6 +104,7 @@ class SpamDetection:
 		spam_words_length = sum(list(self.spamwords.values()))
 		vocab = (len(self.hamwords) + len(self.spamwords)) * 0.5
 		test_prediction = {}
+		result = ""
 		for i in range(1,totalFiles+1):
 			test_dictionary ={}
 			fileNumber = classType+'-'+str(i).zfill(5)
@@ -141,7 +147,9 @@ class SpamDetection:
 				test_prediction [fileNumber] = "ham"
 			else:
 				test_prediction [fileNumber] = "spam"
-			
+			result = result + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+\
+					 "right\n" if classType==test_prediction[fileNumber] else "wrong\n"
+		spamDetection.save_result(result)
 		print(test_prediction.values())
 					
 		
@@ -155,4 +163,4 @@ if __name__ == "__main__":
 	spamDetection.calculate_cond_probaility()
 	spamDetection.generateModel()
 	#spamDetection.predictTestData("test","ham",10)
-	spamDetection.predictTestData("test","spam",20)
+	spamDetection.predictTestData("test","ham",20)
