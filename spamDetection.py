@@ -105,7 +105,9 @@ class SpamDetection:
 		vocab = (len(self.hamwords) + len(self.spamwords)) * 0.5
 		test_prediction = {}
 		result = ""
+		count=0
 		for i in range(1,totalFiles+1):
+			count += 1
 			test_dictionary ={}
 			fileNumber = classType+'-'+str(i).zfill(5)
 			fileName = fileType+'/'+fileType+'-'+ fileNumber + '.txt'
@@ -147,7 +149,7 @@ class SpamDetection:
 				test_prediction [fileNumber] = "ham"
 			else:
 				test_prediction [fileNumber] = "spam"
-			result = result + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+\
+			result = result + str(count) + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+\
 					 "right\n" if classType==test_prediction[fileNumber] else "wrong\n"
 		spamDetection.save_result(result)
 		print(test_prediction.values())
