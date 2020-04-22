@@ -10,6 +10,7 @@ class SpamDetection:
 		self.spamwords = {}
 		self.conditional_hamwords = {}
 		self.conditional_spamwords = {}
+		self.total_vocab = []
 		self.prior_prob_ham = 1000/1997
 		self.prior_prob_spam = 997/1997
 		self.delta = 0.5
@@ -49,7 +50,34 @@ class SpamDetection:
 							
 		print("Length of  ham  words are ", len(self.hamwords))
 		print("Length of spam words are ", len(self.spamwords))
-							
+
+	def save_model(self, result):
+		with open('model.txt', 'w+') as f:
+			f.write(result)
+		f.close()
+
+	def generateModel(self):
+		for i in self.hamwords.keys():
+			self.total_vocab.append(i)
+		for j in self.spamwords.keys():
+			self.total_vocab.append(j)
+
+		distinct_vocab = set(self.total_vocab)
+		distinct_vocab_list = list(distinct_vocab)
+		distinct_vocab_list.sort()
+		#print(distinct_vocab_list)
+		count=0
+		result = ""
+		for i in distinct_vocab_list:
+			count = count+1
+
+			result = result + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0)+ \
+					 "  " + str(self.conditional_hamwords[i] if i in self.conditional_hamwords else 0) + "  " + str(self.spamwords[i] if i in self.spamwords else 0) +\
+					 "  " + str(self.conditional_spamwords[i] if i in self.conditional_spamwords else 0) + "\n"
+		spamDetection.save_model(result)
+		#print(self.total_vocab)
+
+
 	def calculate_cond_probaility(self):
 		'''
 			Conditional Probabilities are being calculated. That is (frequency of the word+ smooting)/(total number of words in that class + vocabulary)
@@ -125,5 +153,6 @@ if __name__ == "__main__":
 	spamDetection.readFiles("train","ham",1000)
 	spamDetection.readFiles("train","spam",997)
 	spamDetection.calculate_cond_probaility()
+	spamDetection.generateModel()
 	#spamDetection.predictTestData("test","ham",10)
 	spamDetection.predictTestData("test","spam",20)
