@@ -217,12 +217,12 @@ if __name__ == "__main__":
 		Main method 
 	'''
 	spamDetection = SpamDetection()
-	spamDetection.readFiles("train","ham",1000)
-	spamDetection.readFiles("train","spam",997)
-	spamDetection.calculate_cond_probaility()
-	spamDetection.generateModel()
-	spamDetection.predictTestData("test","ham",400,1)
-	spamDetection.predictTestData("test","spam",400,401)
-	spamDetection.save_file()
-	spamDetection.calculate_results("ham", "spam")
-	spamDetection.print_accuracy()
+	spamDetection.readFiles("train","ham",1000) # Reading the training files from the disk for ham
+	spamDetection.readFiles("train","spam",997) # Reading the training files from the disk for spam
+	spamDetection.calculate_cond_probaility() # Calculating the conditional probabilities for all words in the vocabulary
+	spamDetection.generateModel() # Generating the model.txt contents with the above calculated conditional probabilities
+	spamDetection.predictTestData("test","ham",400,1) # Predicting ham test data with the generated model and calculating score for ham ans spam for each test email
+	spamDetection.predictTestData("test","spam",400,401) # Predicting spam test data with the generated model and calculating score for ham ans spam for each test email
+	spamDetection.save_file() # Saving the results.txt and model.txt files.
+	spamDetection.calculate_results("ham", "spam") #Calculating the metrics for accuracy, precision, recall and F-Measure and printing them for each class.
+	spamDetection.print_accuracy() # Printing the accuracy for each class.
