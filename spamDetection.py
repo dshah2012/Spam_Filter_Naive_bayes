@@ -38,8 +38,7 @@ class SpamDetection:
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
-				contents=re.sub('[^a-z\s]+',' ',contents,flags=re.IGNORECASE) #every char except alphabets is replaced
-				contents=re.sub('(\s+)',' ',contents) #multiple spaces are replaced by single space
+				contents=re.sub('[^A-Za-z]',' ',contents) #every char except alphabets is replaced
 				contents=contents.lower() #converting the cleaned string to lower case
 				contents = re.split(' ',contents)
 				contents = [i for i in contents if i != ""]
@@ -179,8 +178,7 @@ class SpamDetection:
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
-				contents=re.sub('[^a-z\s]+',' ',contents,flags=re.IGNORECASE) #every char except alphabets is replaced
-				contents=re.sub('(\s+)',' ',contents) #multiple spaces are replaced by single space
+				contents=re.sub('[^A-Za-z]',' ',contents) #every char except alphabets is replaced
 				contents=contents.lower() #converting the cleaned string to lower case
 				contents = re.split(' ',contents)
 				contents = [i for i in contents if i != ""]
