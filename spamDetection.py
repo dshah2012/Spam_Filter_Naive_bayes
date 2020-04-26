@@ -10,10 +10,17 @@ class SpamDetection:
 		self.spamwords = {}
 		self.conditional_hamwords = {}
 		self.conditional_spamwords = {}
+		self.test_prediction = {}
 		self.total_vocab = []
 		self.prior_prob_ham = 1000/1997
 		self.prior_prob_spam = 997/1997
 		self.delta = 0.5
+		self.precision = []
+		self.recall = []
+		self.accuracy = []
+		self.f1measure = []
+		self.model = ""
+		self.result = ""
 	
 	def readFiles(self, fileType, classType, totalFiles):
 		'''
@@ -51,15 +58,14 @@ class SpamDetection:
 		print("Length of  ham  words are ", len(self.hamwords))
 		print("Length of spam words are ", len(self.spamwords))
 
-	def save_model(self, result):
-		with open('model.txt', 'w+') as f:
-			f.write(result)
+	def save_file(self):
+		with open("model.txt", 'w+') as f:
+			f.write(self.model)
 		f.close()
-
-	def save_result(self,result):
-		with open('result.txt','w+') as f:
-			f.write(result)
-		f.close();
+		
+		with open("result.txt", 'w+') as f:
+			f.write(self.result)
+		f.close()
 
 	def generateModel(self):
 		for i in self.hamwords.keys():
@@ -72,24 +78,86 @@ class SpamDetection:
 		distinct_vocab_list.sort()
 		#print(distinct_vocab_list)
 		count=0
-		result = ""
 		for i in distinct_vocab_list:
 			count = count+1
 
-			result = result + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0)+ \
+			self.model = self.model + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0)+ \
 					 "  " + str(self.conditional_hamwords[i] if i in self.conditional_hamwords else 0) + "  " + str(self.spamwords[i] if i in self.spamwords else 0) +\
 					 "  " + str(self.conditional_spamwords[i] if i in self.conditional_spamwords else 0) + "\n"
-		spamDetection.save_model(result)
 		#print(self.total_vocab)
 
+	def length_utility(self):
+		ham_words_length = sum(list(self.hamwords.values()))
+		spam_words_length = sum(list(self.spamwords.values()))
+		total_length = len(list(set(list(self.hamwords.keys()) + list(self.spamwords.keys()))))
+		vocab = total_length * 0.5 #total vocabulary size
+		return ham_words_length,spam_words_length,vocab
+	
+	def display_result(self, tp, fn):
+		print("              Predicted")
+		print("         Positive  | Negative")
+		print("Positive "+str(tp)+ "| "+ str(fn))
+		print("Negative 0 | 0")
+		print("Results :")
+		fp = 0
+		precision = tp/(tp+fp)
+		recall = tp/(tp+fn)
+		flscore = (2*precision*recall)/(precision+recall)
+		print("Precision : ", precision)
+		print("Recall : ", recall)
+		print("Fl Score : ", flscore)
+		print("Accuracy: ", (tp)/(tp+fn))
+		
+		
+	
+	def calculate_results(self, hamType, spamType):
+		
+		tp_ham = sum([1 if i[0:3]==self.test_prediction[i] and i[0:3]==hamType else 0 for i in self.test_prediction.keys()])
+		fn_ham = sum([1 if i[0:3]!=self.test_prediction[i] and i[0:3]==hamType else 0 for i in self.test_prediction.keys()])
+		tp_spam = sum([1 if i[0:4]==self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
+		fn_spam = sum([1 if i[0:4]!=self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
+		print("-------HAM-----------")
+		self.display_result(tp_ham,fn_ham)
+		print("---------------------")
+		
+		print("-------SPAM-----------")	
+		self.display_result(tp_spam,fn_spam)
+		print("---------------------")
+		
+		
+		#print("Model results")
+		#self.display_result(tp_spam,fn_spam)
+		
+		#accuracy.append((tp+tn)/(tp+fp+tn+fn))
+		
+	
+	def print_accuracy(self):
+		ham = [0,0]
+		spam =[0,0]
+		for i in self.test_prediction.keys():
+			if i[0:3]=="ham":
+				if self.test_prediction[i] == "ham":
+						ham[0] += 1
+				else:	
+						ham[1] += 1
+			
+			if i[0:4]=="spam":
+				if self.test_prediction[i] == "spam":
+						spam[0] += 1
+				else:	
+						spam[1] += 1
+			
+		
+		print("Prediction Accuracy for Spam is ", (spam[0]/(spam[0]+spam[1]))*100)
+		print("Prediction Accuracy for Ham is ", (ham[0]/(ham[0]+ham[1]))*100)
+		
+	
 
 	def calculate_cond_probaility(self):
 		'''
 			Conditional Probabilities are being calculated. That is (frequency of the word+ smooting)/(total number of words in that class + vocabulary)
 		'''
-		ham_words_length = sum(list(self.hamwords.values()))
-		spam_words_length = sum(list(self.spamwords.values()))
-		vocab = (len(self.hamwords) + len(self.spamwords)) * 0.5 #total vocabulary size
+		ham_words_length,spam_words_length,vocab = self.length_utility()
 		for i in self.hamwords.keys():
 			self.conditional_hamwords[i] = (self.hamwords[i] + self.delta)/(ham_words_length + vocab)
 		
@@ -100,11 +168,8 @@ class SpamDetection:
 		'''
 			Prediction of the test files are being done .
 		'''
-		ham_words_length = sum(list(self.hamwords.values()))
-		spam_words_length = sum(list(self.spamwords.values()))
-		vocab = (len(self.hamwords) + len(self.spamwords)) * 0.5
-		test_prediction = {}
-		result = ""
+		ham_words_length,spam_words_length,vocab = self.length_utility()
+		
 		count=0
 		for i in range(1,totalFiles+1):
 			count += 1
@@ -146,13 +211,14 @@ class SpamDetection:
 			#print("Spam score is ", spam)
 			#Checking for the prediction here based upon the values
 			if ham > spam:
-				test_prediction [fileNumber] = "ham"
+				self.test_prediction [fileNumber] = "ham"
 			else:
-				test_prediction [fileNumber] = "spam"
-			result = result + str(count) + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+\
-					 "right\n" if classType==test_prediction[fileNumber] else "wrong\n"
-		spamDetection.save_result(result)
-		print(test_prediction.values())
+				self.test_prediction [fileNumber] = "spam"
+				
+			self.result = self.result + str(count) + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ self.test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+("right\n" if classType==self.test_prediction[fileNumber] else "wrong\n")
+			
+		
+		#print(self.test_prediction.values())
 					
 		
 if __name__ == "__main__":
@@ -164,5 +230,8 @@ if __name__ == "__main__":
 	spamDetection.readFiles("train","spam",997)
 	spamDetection.calculate_cond_probaility()
 	spamDetection.generateModel()
-	#spamDetection.predictTestData("test","ham",10)
-	spamDetection.predictTestData("test","ham",20)
+	spamDetection.predictTestData("test","ham",400)
+	spamDetection.predictTestData("test","spam",400)
+	#spamDetection.save_file()
+	spamDetection.print_accuracy()
+	spamDetection.calculate_results("ham", "spam")
