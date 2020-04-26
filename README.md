@@ -14,7 +14,6 @@ This is a project to implement Naive Bayes algorithm for Email Spam classificati
 - length_utility - This method calculates the length and the contents of the vocabulary.
 - display_result - This displays the confusion matrix for each class.
 - calculate_results - This calculates the false positives, tp, fn etc.
-- print_accuracy - This prints the accuracy of the model
 - calculate_cond_probability - This calculates the conditional probability of each word for each class. 
 - predictTestData - This method tests the test data by calculating score for ham and spam classes.
 
