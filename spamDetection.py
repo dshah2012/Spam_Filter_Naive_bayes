@@ -16,10 +16,6 @@ class SpamDetection:
 		self.prior_prob_ham = 1000/1997
 		self.prior_prob_spam = 997/1997
 		self.delta = 0.5
-		self.precision = []
-		self.recall = []
-		self.accuracy = []
-		self.f1measure = []
 		self.model = ""
 		self.result = ""
 	
@@ -68,6 +64,7 @@ class SpamDetection:
 		ham_words_length, spam_words_length, vocab, distinct_vocab_list = self.length_utility()
 		#print(distinct_vocab_list)
 		count=0
+		distinct_vocab_list = sorted(distinct_vocab_list)
 		for i in distinct_vocab_list:
 			count = count+1
 			self.model = self.model + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0.5) +"  " + str(self.conditional_hamwords[i] if i in self.conditional_hamwords else 0) + "  " + str(self.spamwords[i] if i in self.spamwords else 0.5) +"  " + str(self.conditional_spamwords[i] if i in self.conditional_spamwords else 0) + "\n"
@@ -160,15 +157,13 @@ class SpamDetection:
 			else:
 				self.conditional_spamwords[i] = (self.delta)/(spam_words_length + vocab)
 			
-	def predictTestData(self, fileType, classType, totalFiles):
+	def predictTestData(self, fileType, classType, totalFiles, count):
 		'''
 			Prediction of the test files are being done .
 		'''
 		ham_words_length,spam_words_length,vocab, vocab_list = self.length_utility()
 		
-		count=0
 		for i in range(1,totalFiles+1):
-			count += 1
 			test_dictionary ={}
 			fileNumber = classType+'-'+str(i).zfill(5)
 			fileName = fileType+'/'+fileType+'-'+ fileNumber + '.txt'
@@ -211,6 +206,7 @@ class SpamDetection:
 				self.test_prediction [fileNumber] = "spam"
 				
 			self.result = self.result + str(count) + "  "+fileType+'-'+ fileNumber + '.txt' +"  "+ self.test_prediction [fileNumber] +"  "+ str(ham) +"  "+ str(spam) + "  "+classType + "  "+("right\n" if classType==self.test_prediction[fileNumber] else "wrong\n")
+			count += 1
 			
 		
 		#print(self.test_prediction.values())
@@ -225,8 +221,8 @@ if __name__ == "__main__":
 	spamDetection.readFiles("train","spam",997)
 	spamDetection.calculate_cond_probaility()
 	spamDetection.generateModel()
-	spamDetection.predictTestData("test","ham",400)
-	spamDetection.predictTestData("test","spam",400)
+	spamDetection.predictTestData("test","ham",400,1)
+	spamDetection.predictTestData("test","spam",400,401)
 	spamDetection.save_file()
 	spamDetection.calculate_results("ham", "spam")
 	spamDetection.print_accuracy()
