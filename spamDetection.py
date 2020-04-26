@@ -1,4 +1,5 @@
 import re
+import math
 
 class SpamDetection:
 	
@@ -55,9 +56,6 @@ class SpamDetection:
 						else:
 							self.spamwords[i] = 1
 							
-		print("Length of  ham  words are ", len(self.hamwords))
-		print("Length of spam words are ", len(self.spamwords))
-
 	def save_file(self):
 		with open("model.txt", 'w+') as f:
 			f.write(self.model)
@@ -68,15 +66,12 @@ class SpamDetection:
 		f.close()
 
 	def generateModel(self):
-		distinct_vocab_list = self.length_utility()
+		ham_words_length, spam_words_length, vocab, distinct_vocab_list = self.length_utility()
 		#print(distinct_vocab_list)
 		count=0
 		for i in distinct_vocab_list:
 			count = count+1
-
-			self.model = self.model + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0.5)+ \
-					 "  " + str(self.conditional_hamwords[i] if i in self.conditional_hamwords else 0) + "  " + str(self.spamwords[i] if i in self.spamwords else 0.5) +\
-					 "  " + str(self.conditional_spamwords[i] if i in self.conditional_spamwords else 0) + "\n"
+			self.model = self.model + str(count) + "  " + i + "  " + str(self.hamwords[i] if i in self.hamwords else 0.5) +"  " + str(self.conditional_hamwords[i] if i in self.conditional_hamwords else 0) + "  " + str(self.spamwords[i] if i in self.spamwords else 0.5) +"  " + str(self.conditional_spamwords[i] if i in self.conditional_spamwords else 0) + "\n"
 		#print(self.total_vocab)
 
 	def length_utility(self):
@@ -84,6 +79,7 @@ class SpamDetection:
 		spam_words_length = sum(list(self.spamwords.values()))
 		total_vocab = set(list(self.hamwords.keys()) + list(self.spamwords.keys()))
 		total_length = len(total_vocab)
+		print("Total Vocab Size : ", total_length)
 		vocab = total_length * 0.5 #total vocabulary size
 		return ham_words_length,spam_words_length,vocab,total_vocab
 	
@@ -151,23 +147,25 @@ class SpamDetection:
 		'''
 			Conditional Probabilities are being calculated. That is (frequency of the word+ smooting)/(total number of words in that class + vocabulary)
 		'''
+		print("Length of  ham  words are ", len(self.hamwords))
+		print("Length of spam words are ", len(self.spamwords))
 		ham_words_length,spam_words_length,vocab,vocab_list = self.length_utility()
 		for i in vocab_list:
 			if i in self.hamwords.keys():
 				self.conditional_hamwords[i] = (self.hamwords[i] + self.delta)/(ham_words_length + vocab)
-			else
+			else:
 				self.conditional_hamwords[i] = (self.delta)/(ham_words_length + vocab)
 			
 			if i in self.spamwords.keys():
 				self.conditional_spamwords[i] = (self.spamwords[i] + self.delta)/(spam_words_length + vocab)
-			else
+			else:
 				self.conditional_spamwords[i] = (self.delta)/(spam_words_length + vocab)
 			
 	def predictTestData(self, fileType, classType, totalFiles):
 		'''
 			Prediction of the test files are being done .
 		'''
-		ham_words_length,spam_words_length,vocab = self.length_utility()
+		ham_words_length,spam_words_length,vocab, vocab_list = self.length_utility()
 		
 		count=0
 		for i in range(1,totalFiles+1):
@@ -176,8 +174,8 @@ class SpamDetection:
 			fileNumber = classType+'-'+str(i).zfill(5)
 			fileName = fileType+'/'+fileType+'-'+ fileNumber + '.txt'
 			file = open(fileName, "r",encoding="utf8", errors='ignore')
-			ham = 0
-			spam = 0
+			ham = math.log10(self.prior_prob_ham)
+			spam = math.log10(self.prior_prob_spam)
 			if file.mode == 'r':
 				contents =file.read()
 				file.close()
@@ -197,14 +195,14 @@ class SpamDetection:
 						#Formula for calulating the score is prior probability  * frequency of that word * conditional Probability 
 						#If the word was not present earlier then we just do 0.5(smoothing)/(sum of all the frequency words in class + (vocabulary * 0.5))
 						if i not in self.conditional_hamwords.keys():
-							ham += self.prior_prob_ham * test_dictionary[i] * (0.5/(ham_words_length+vocab))
+							ham += test_dictionary[i] * math.log10(0.5/(ham_words_length+vocab))
 						else:
-							ham += self.prior_prob_ham * test_dictionary[i] *  self.conditional_hamwords[i]
+							ham += test_dictionary[i] * math.log10(self.conditional_hamwords[i])
 						
 						if i not in self.conditional_spamwords.keys():
-							spam += self.prior_prob_spam * test_dictionary[i] * (0.5/(spam_words_length+vocab))
+							spam +=  test_dictionary[i] * math.log10(0.5/(spam_words_length+vocab))
 						else:
-							spam += self.prior_prob_spam * test_dictionary[i] * self.conditional_spamwords[i]
+							spam +=  test_dictionary[i] * math.log10(self.conditional_spamwords[i])
 			
 			#print("Ham Score is ", ham)
 			#print("Spam score is ", spam)
@@ -229,9 +227,8 @@ if __name__ == "__main__":
 	spamDetection.readFiles("train","spam",997)
 	spamDetection.calculate_cond_probaility()
 	spamDetection.generateModel()
+	spamDetection.predictTestData("test","ham",400)
+	spamDetection.predictTestData("test","spam",400)
 	spamDetection.save_file()
-	#spamDetection.predictTestData("test","ham",400)
-	#spamDetection.predictTestData("test","spam",400)
-	#spamDetection.save_file()
-	#spamDetection.print_accuracy()
-	#spamDetection.calculate_results("ham", "spam")
+	spamDetection.calculate_results("ham", "spam")
+	spamDetection.print_accuracy()
