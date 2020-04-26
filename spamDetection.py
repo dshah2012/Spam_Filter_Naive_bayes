@@ -79,20 +79,22 @@ class SpamDetection:
 		vocab = total_length * 0.5 #total vocabulary size
 		return ham_words_length,spam_words_length,vocab,total_vocab
 	
-	def display_result(self, tp, fn):
+	def display_result(self, tp, fn, fp, tn):
+		'''
+			Calculation of the precision, recall, f1measure and accuracy in this method.
+		'''
 		print("              Predicted")
 		print("         Positive  | Negative")
 		print("Positive "+str(tp)+ "| "+ str(fn))
-		print("Negative 0 | 0")
+		print("Negative "+str(fp)+ "| "+ str(tn))
 		print("Results :")
-		fp = 0
 		precision = tp/(tp+fp)
 		recall = tp/(tp+fn)
 		flscore = (2*precision*recall)/(precision+recall)
 		print("Precision : ", precision)
 		print("Recall : ", recall)
 		print("Fl Score : ", flscore)
-		print("Accuracy: ", (tp)/(tp+fn))
+		print("Accuracy: ", (tp+tn)/(tp+fn+fp+tn))
 		
 		
 	
@@ -103,39 +105,22 @@ class SpamDetection:
 		tp_spam = sum([1 if i[0:4]==self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
 		fn_spam = sum([1 if i[0:4]!=self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
 		print("-------HAM-----------")
-		self.display_result(tp_ham,fn_ham)
+		self.display_result(tp_ham, fn_ham, 0, 0)
 		print("---------------------")
 		
 		print("-------SPAM-----------")	
-		self.display_result(tp_spam,fn_spam)
+		self.display_result(tp_spam, fn_spam, 0, 0)
 		print("---------------------")
 		
 		
-		#print("Model results")
-		#self.display_result(tp_spam,fn_spam)
+		print("------ Model results-------")
+		tp = sum([1 if i[0:4]==self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
+		fp = sum([1 if i[0:3]!=self.test_prediction[i] and i[0:3]==hamType else 0 for i in self.test_prediction.keys()])
+		tn = sum([1 if i[0:3]==self.test_prediction[i] and i[0:3]==hamType else 0 for i in self.test_prediction.keys()])
+		fn = sum([1 if i[0:4]!=self.test_prediction[i] and i[0:4]==spamType else 0 for i in self.test_prediction.keys()])
+		self.display_result(tp, fn, fp, tn)
+		print("---------------------")
 		
-		#accuracy.append((tp+tn)/(tp+fp+tn+fn))
-		
-	
-	def print_accuracy(self):
-		ham = [0,0]
-		spam =[0,0]
-		for i in self.test_prediction.keys():
-			if i[0:3]=="ham":
-				if self.test_prediction[i] == "ham":
-						ham[0] += 1
-				else:	
-						ham[1] += 1
-			
-			if i[0:4]=="spam":
-				if self.test_prediction[i] == "spam":
-						spam[0] += 1
-				else:	
-						spam[1] += 1
-			
-		
-		print("Prediction Accuracy for Spam is ", (spam[0]/(spam[0]+spam[1]))*100)
-		print("Prediction Accuracy for Ham is ", (ham[0]/(ham[0]+ham[1]))*100)
 		
 	
 
@@ -225,4 +210,3 @@ if __name__ == "__main__":
 	spamDetection.predictTestData("test","spam",400,401) # Predicting spam test data with the generated model and calculating score for ham ans spam for each test email
 	spamDetection.save_file() # Saving the results.txt and model.txt files.
 	spamDetection.calculate_results("ham", "spam") #Calculating the metrics for accuracy, precision, recall and F-Measure and printing them for each class.
-	spamDetection.print_accuracy() # Printing the accuracy for each class.
